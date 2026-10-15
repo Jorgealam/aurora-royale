@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test tests/core.test.cjs
+      - run: node --test tests/*.test.cjs
       - run: node tools/build-offline.cjs
       - run: mkdir -p _site && cp index.html sw.js .nojekyll _site/ && cp -R game _site/
       - uses: actions/configure-pages@v5
@@ -31,3 +31,4 @@ jobs:
       - name: Publicar
         id: deployment
         uses: actions/deploy-pages@v4
+

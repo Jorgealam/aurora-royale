@@ -1,0 +1,20 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
+const root=path.resolve(__dirname,'..');
+function setup({failInstall=false,cacheMiss=false}={}){
+ const events={},responses=[],deleted=[],stores=new Map(),prefix='aurora-royale:/aurora-royale/:';
+ const caches={open:async name=>{if(!stores.has(name))stores.set(name,{addAll:async requests=>{if(failInstall)throw Error('network lost');for(const request of requests)responses.push(request.url);},match:async key=>cacheMiss?undefined:{cached:key}});return stores.get(name);},keys:async()=>[prefix+'old','aurora-royale:/other-game/:keep','other-site-cache'],delete:async key=>{deleted.push(key);return true;}};
+ let claimed=false;const self={location:{href:'https://example.github.io/aurora-royale/sw.js'},clients:{claim:async()=>{claimed=true;}},addEventListener:(name,fn)=>events[name]=fn};
+ vm.runInNewContext(fs.readFileSync(path.join(root,'sw.js'),'utf8'),{self,URL,Request,caches,fetch:async request=>({network:request.url})});
+ return {events,responses,deleted,claimed:()=>claimed};
+}
+const lifetime=async handler=>{let done;handler({waitUntil:p=>done=p});await done;};
+const request=(env,url,method='GET')=>{let response;env.events.fetch({request:{url,method},respondWith:p=>response=p});return response;};
+test('Instala todos os arquivos locais sob a pasta do Pages',async()=>{const e=setup();await lifetime(e.events.install);assert.equal(e.responses.length,12);for(const url of e.responses)assert.ok(url.startsWith('https://example.github.io/aurora-royale/'));assert.ok(e.responses.some(url=>url.endsWith('game/vendor/three.min.js')));});
+test('Instalação incompleta é rejeitada e remove apenas o novo cache',async()=>{const e=setup({failInstall:true});await assert.rejects(lifetime(e.events.install),/network lost/);assert.equal(e.deleted.length,1);assert.ok(e.deleted[0].startsWith('aurora-royale:/aurora-royale/:'));});
+test('Ativação preserva caches de outros projetos e assume os clientes',async()=>{const e=setup();await lifetime(e.events.activate);assert.deepEqual(e.deleted,['aurora-royale:/aurora-royale/:old']);assert.equal(e.claimed(),true);});
+test('Endereço principal e game/ usam os HTMLs em cache offline',async()=>{const e=setup();assert.equal((await request(e,'https://example.github.io/aurora-royale/')).cached,'https://example.github.io/aurora-royale/index.html');assert.equal((await request(e,'https://example.github.io/aurora-royale/game/?test=1')).cached,'https://example.github.io/aurora-royale/game/index.html');});
+test('JavaScript cacheado não depende de rede e aceita query de navegação',async()=>{const e=setup();assert.equal((await request(e,'https://example.github.io/aurora-royale/game/game.js?v=1')).cached,'https://example.github.io/aurora-royale/game/game.js');});
+test('Não intercepta outros domínios, projetos, POST ou arquivos desconhecidos',()=>{const e=setup();for(const url of ['https://elsewhere.example/aurora-royale/game/game.js','https://example.github.io/other/game.js','https://example.github.io/aurora-royale/private.json'])assert.equal(request(e,url),undefined);assert.equal(request(e,'https://example.github.io/aurora-royale/game/game.js','POST'),undefined);});
+test('Cache removido pelo navegador usa rede como fallback',async()=>{const e=setup({cacheMiss:true});assert.equal((await request(e,'https://example.github.io/aurora-royale/game/core.js')).network,'https://example.github.io/aurora-royale/game/core.js');});
+test('Todos os arquivos referenciados no HTML estão incluídos na versão do cache',()=>{const sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');const files=JSON.parse(sw.match(/FILES=(\[[^;]+\])/)[1]);const html=fs.readFileSync(path.join(root,'game/index.html'),'utf8');for(const match of html.matchAll(/(?:src|href)="([^"]+)"/g))if(!match[1].startsWith('#'))assert.ok(files.includes('game/'+match[1]),match[1]);for(const file of files)assert.ok(fs.existsSync(path.join(root,file)),file);});
