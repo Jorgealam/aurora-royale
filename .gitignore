@@ -1,0 +1,11 @@
+# O executável Windows passa de 100 MB (limite do GitHub). Distribua-o como ZIP em "Releases".
+Windows/
+test-results/
+node_modules/
+.claude/
+
+_site/
+evidencias/
+*.log
+.env
+.env.*

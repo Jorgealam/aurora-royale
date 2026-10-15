@@ -1,0 +1,17 @@
+{
+  "name": "aurora-royale",
+  "productName": "Aurora Royale",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Battle Royale 3D offline para Windows, com Three.js e Electron",
+  "main": "main.cjs",
+  "scripts": {
+    "test": "node tests/core.test.cjs",
+    "start": "electron .",
+    "serve": "node tools/server.cjs",
+    "build:offline": "node tools/build-offline.cjs"
+  },
+  "devDependencies": {
+    "electron": "44.7.0"
+  }
+}

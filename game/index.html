@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'">
+  <meta name="description" content="Aurora Royale: battle royale 3D em primeira pessoa que roda direto no navegador.">
+  <title>Aurora Royale</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="c" aria-label="Mundo 3D de Aurora Royale"></canvas>
+  <div id="vignette"></div><div id="damage"></div>
+  <div id="loading"><span class="eyebrow">AURORA / ROYALE</span><h2>Construindo o campo de batalha</h2><p id="loadStatus">Gerando terreno, vegetação, construções e iluminação…</p><div class="loader"><i></i></div></div>
+  <main id="menu" class="hidden">
+    <header><div class="brand"><span class="brand-mark">A</span> AURORA <span class="muted">ROYALE</span></div><div class="eyebrow">EDIÇÃO 2.0 · NAVEGADOR</div></header>
+    <section class="hero"><p class="eyebrow accent">09 SETORES. UMA ÚLTIMA CHANCE.</p><h1>A próxima zona<br>é sua.</h1><p class="intro">Explore Aurora do amanhecer à tempestade. Encontre seu equipamento.<br>Sobreviva ao campo de batalha que se fecha.</p>
+      <div class="badges"><span>HDR · BLOOM · RAIOS DE SOL</span><span>DIA, NOITE E CLIMA</span><span>12 ARMAS · GRANADAS</span><span>IA TÁTICA</span></div>
+      <div class="menu-actions"><button id="play" class="primary">ENTRAR EM COMBATE <span>↗</span></button><button id="train" class="secondary">Campo de treino</button></div>
+      <div class="small-actions"><button id="arsenalButton">Explorar arsenal</button><button id="benchmarkButton">Benchmark de 30 s</button><button id="helpButton">Controles</button><button id="devButton">Modo desenvolvedor [F1]</button></div>
+    </section>
+    <aside class="setup glass"><p class="eyebrow accent">PREPARAR PARTIDA</p><h2>Seu campo. Suas regras.</h2><label>MAPA<select id="mapSelect"><option value="aurora">Aurora · continente (9 setores)</option><option value="island">Ilha do Medo · ilha-presídio</option></select></label><label>QUALIDADE<select id="quality"><option value="low">Baixa · desempenho</option><option value="medium">Média · equilibrada</option><option value="high" selected>Alta · HDR completo</option><option value="ultra">Ultra · resolução máxima</option></select></label><label>OPONENTES<select id="botCount"><option value="12">12 bots</option><option value="20" selected>20 bots</option><option value="32">32 bots</option></select></label><label>DIFICULDADE<select id="difficulty"><option value="easy">Recruta</option><option value="normal" selected>Soldado</option><option value="hard">Veterano</option></select></label><label>SENSIBILIDADE <output id="sensLabel">1.0</output><input id="sensitivity" type="range" min="0.3" max="2.5" step="0.1" value="1"></label><label>VOLUME <output id="volLabel">60%</output><input id="volume" type="range" min="0" max="1" step="0.05" value="0.6"></label><p class="setup-note">Placas de vídeo modestas: use Média.<br>F1 abre o modo desenvolvedor a qualquer momento.</p></aside>
+    <footer><span><i class="status-dot"></i> PRONTO PARA JOGAR · 100% NO NAVEGADOR</span><span>WASD mover · mouse mirar · G granada</span></footer>
+  </main>
+  <div id="hud" class="hidden">
+    <div class="top-left"><span class="eyebrow" id="mapName">AURORA</span><strong id="region">Encruzilhada</strong><span id="modeLabel">BATTLE ROYALE</span><span id="clock">16:30</span></div>
+    <div class="compass"><div id="compassText">N · 000°</div><div id="zoneInfo"><span class="accent">ZONA 01</span> · abre em 35s</div></div>
+    <div class="match-count glass"><div><b id="alive">21</b><small>VIVOS</small></div><div><b id="kills">0</b><small>ABATES</small></div></div>
+    <div id="killfeed"></div><div id="zoneWarning" class="hidden">FORA DA ZONA SEGURA</div>
+    <div id="banner"><b id="bannerText">ELIMINADO</b><small id="bannerSub"></small></div>
+    <div id="crosshair"><i></i><i></i><i></i><i></i><em></em></div><div id="hitmarker"><i></i><i></i><i></i><i></i></div><div id="hitDir"></div>
+    <canvas id="scope" class="hidden"></canvas><div id="breath"><small>SHIFT · SEGURAR RESPIRAÇÃO</small><div><i id="breathBar"></i></div></div>
+    <div id="pickup" class="hidden glass"><kbd>E</kbd><div><strong id="pickupName">Equipamento</strong><small id="pickupNote">Coletar</small></div></div>
+    <div id="toast"></div><div id="actionBar" class="hidden"><span id="actionText">RECARREGANDO</span><progress id="actionProgress" max="1" value="0"></progress></div>
+    <div class="bottom-left"><canvas id="minimap" width="220" height="220"></canvas><div class="vitals glass"><div class="bar-row"><span>+</span><div class="bar"><i id="hpBar"></i></div><b id="hp">100</b></div><div class="bar-row shield"><span>◇</span><div class="bar"><i id="armorBar"></i></div><b id="armor">50</b></div><div class="supplies"><span><kbd>H</kbd> KIT <b id="medkits">2</b></span><span><kbd>J</kbd> PLACA <b id="plates">1</b></span><span><kbd>G</kbd> GRAN. <b id="grenadeCount">2</b></span></div></div></div>
+    <div class="bottom-right"><div class="weapon-info"><small id="weaponType">FUZIL</small><h2 id="weaponName">AR5 Ranger</h2><div class="ammo"><b id="mag">30</b><span>/ <span id="reserve">120</span></span></div><small id="ammoType">5.56 · AUTOMÁTICO</small></div><div id="attach"></div><div class="slots"><div id="slot1" class="slot active"><kbd>1</kbd><span>AR5</span></div><div id="slot2" class="slot"><kbd>2</kbd><span>P9</span></div></div></div>
+    <div class="bottom-center">SHIFT correr · C agachar · G granada · L laser · F lanterna · R recarregar · I inventário · M mapa · F1 dev · ESC pausar</div>
+  </div>
+  <div id="floaters"></div><div id="devLabels"></div><div id="fpsMini" class="hidden">60 FPS</div>
+  <div id="debug" class="hidden glass"></div>
+  <aside id="devPanel" class="hidden" aria-label="Modo desenvolvedor"></aside>
+  <section id="pause" class="overlay hidden"><div class="panel glass"><p class="eyebrow accent">PARTIDA PAUSADA</p><h2>Respire. Reorganize.</h2><button id="resume" class="primary">VOLTAR AO COMBATE</button><button id="restart" class="secondary">Nova partida</button><button id="returnMenu" class="text-button">Voltar ao menu</button><p class="hint">ESC libera o mouse e pausa a simulação.<br>F11 alterna tela cheia · F1 modo desenvolvedor.</p></div></section>
+  <section id="inventory" class="overlay hidden"><div class="panel inventory-panel glass"><p class="eyebrow accent">EQUIPAMENTO</p><h2>Seu inventário</h2><div id="inventorySlots"></div><h3>MUNIÇÃO COMPARTILHADA</h3><div id="ammoInventory"></div><p id="supplyInventory"></p><div class="inventory-actions"><button id="drop" class="secondary">Largar arma ativa [Q]</button><button id="closeInventory" class="primary">Voltar [I]</button></div><p class="hint">Duas armas. Munição é guardada por calibre.<br>Coletar com ambos os espaços ocupados substitui a arma ativa.</p></div></section>
+  <section id="mapOverlay" class="overlay hidden"><div class="panel map-panel glass"><p class="eyebrow accent">RECONHECIMENTO</p><h2>Ilha Aurora</h2><canvas id="fullmap" width="680" height="680"></canvas><p class="hint">▲ Você · ○ Zona atual · ○ Próxima zona · ■ Equipamento próximo (cor = raridade)</p><button id="closeMap" class="secondary">Voltar ao combate [M]</button></div></section>
+  <section id="arsenal" class="overlay hidden"><div class="panel arsenal-panel glass"><p class="eyebrow accent">12 FERRAMENTAS DE SOBREVIVÊNCIA</p><h2>Arsenal Aurora</h2><div id="weaponCards"></div><button id="closeArsenal" class="secondary">Voltar</button><p class="hint">Cinco raridades: Comum, Incomum, Rara, Épica e Lendária. A cor do feixe de luz no chão indica a raridade.</p></div></section>
+  <section id="help" class="overlay hidden"><div class="panel glass"><p class="eyebrow accent">MANUAL DE CAMPO</p><h2>Pronto para sobreviver</h2><dl class="controls"><dt>W A S D / setas</dt><dd>Mover</dd><dt>Mouse / botão esquerdo</dt><dd>Olhar / atirar</dd><dt>Botão direito</dt><dd>Mirar (ADS)</dd><dt>Shift / Ctrl ou C / Espaço</dt><dd>Correr / agachar / pular</dd><dt>R / 1, 2 ou roda</dt><dd>Recarregar / trocar arma</dd><dt>E / Q</dt><dd>Coletar / largar arma</dd><dt>G</dt><dd>Lançar granada</dd><dt>L / F</dt><dd>Laser / lanterna</dd><dt>Shift na luneta</dt><dd>Segurar a respiração</dd><dt>H / J</dt><dd>Kit médico / placa de armadura</dd><dt>I / M</dt><dd>Inventário / mapa (pausam)</dd><dt>ESC / F11 / F3</dt><dd>Pausar / tela cheia / desempenho</dd><dt>F1 ou '</dt><dd>Modo desenvolvedor</dd></dl><p class="hint">Seja o último sobrevivente. A zona causa dano direto à vida.<br>Inimigos ouvem tiros, flanqueiam, usam cobertura e granadas.</p><button id="closeHelp" class="primary">Entendido</button></div></section>
+  <section id="end" class="overlay hidden"><div class="panel end-panel glass"><p id="endEyebrow" class="eyebrow accent">OPERAÇÃO ENCERRADA</p><h2 id="endTitle">Último sobrevivente.</h2><div id="endStats"></div><button id="playAgain" class="primary">JOGAR NOVAMENTE</button><button id="endMenu" class="secondary">Voltar ao menu</button><button id="exportBenchmark" class="text-button hidden">Salvar relatório JSON</button></div></section>
+  <div id="fatal" class="overlay hidden"><div class="panel glass"><h2>Não foi possível iniciar o 3D.</h2><p id="fatalText"></p><p>Use Chrome, Edge ou Firefox atualizados, com aceleração gráfica habilitada.</p></div></div>
+  <script src="vendor/three.min.js"></script><script src="core.js"></script><script src="world.js"></script><script src="island.js"></script><script src="fx.js"></script><script src="game.js"></script><script src="dev.js"></script>
+  <script src="offline.js"></script>
+</body></html>

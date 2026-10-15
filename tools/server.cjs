@@ -1,0 +1,5 @@
+'use strict';
+const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
+const root=path.resolve(__dirname,'..','game'),port=Number(process.env.AURORA_PORT||8080);
+const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.txt':'text/plain'};
+http.createServer((req,res)=>{let relative;try{relative=decodeURIComponent(new URL(req.url,'http://localhost').pathname);}catch{res.writeHead(400);res.end();return;}const target=path.resolve(root,'.'+(relative==='/'?'/index.html':relative));if(target!==root&&!target.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}fs.readFile(target,(e,data)=>{if(e){res.writeHead(404);res.end('Arquivo não encontrado');return;}res.writeHead(200,{'Content-Type':types[path.extname(target)]||'application/octet-stream','Cache-Control':'no-store'});res.end(data);});}).listen(port,'127.0.0.1',()=>console.log(`Aurora Royale: http://127.0.0.1:${port} (Ctrl+C encerra)`));
