@@ -2,7 +2,7 @@
 
 ## Estado
 
-Arquivos preparados para publicar. O link de produção só será confirmado depois da criação do repositório, envio e conclusão do deploy no GitHub. A autenticação do GitHub CLI está pendente de autorização pelo proprietário no Microsoft Edge.
+Publicado em https://jorgealam.github.io/aurora-royale/ no repositório https://github.com/Jorgealam/aurora-royale. Workflow inicial 38774797244 concluído com sucesso, incluindo os 22 testes. Verificação HTTP: raiz, game/, sw.js, offline.js e Three.js responderam 200 por HTTPS.
 
 ## Alterações
 

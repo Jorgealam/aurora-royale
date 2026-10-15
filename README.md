@@ -4,7 +4,7 @@ Battle royale 3D em primeira pessoa para navegador e Windows. Contém 12 armas, 
 
 ## Jogar
 
-O endereço definitivo será registrado após a publicação no GitHub Pages. Use teclado e mouse; esta versão não possui controles de toque.
+Jogue em https://jorgealam.github.io/aurora-royale/ — repositório: https://github.com/Jorgealam/aurora-royale. Use teclado e mouse; esta versão não possui controles de toque.
 
 ## Offline
 
