@@ -1,0 +1,31 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+const {create,stick}=require('../game/input.js');
+test('Modo automático identifica toque e mantém PC com mouse',()=>{assert.equal(create('auto',true).isTouch(),true);assert.equal(create('auto',false).isTouch(),false);assert.equal(create('pc',true).isTouch(),false);assert.equal(create('touch',false).isTouch(),true);});
+test('Analógico tem zona morta e intensidade proporcional',()=>{assert.deepEqual(stick(2,1,50),{x:0,y:0});const half=stick(25,0,50);assert.ok(half.x>.4&&half.x<.5);assert.equal(half.y,0);assert.deepEqual(stick(0,-50,50),{x:0,y:1});});
+test('Analógico diagonal e dedos fora da área nunca excedem velocidade máxima',()=>{const d=stick(500,-500,50);assert.ok(Math.abs(Math.hypot(d.x,d.y)-1)<1e-9);assert.ok(d.x>0&&d.y>0);});
+test('Cancelamento e troca de modo zeram o mesmo vetor compartilhado',()=>{const c=create('touch');const ref=c.move;c.setStick(100,0,50);c.reset();assert.equal(ref.x,0);c.setStick(0,-50,50);c.setMode('pc');assert.equal(ref.y,0);assert.equal(c.move,ref);});
+test('Mira respeita sensibilidade, ADS e limites verticais',()=>{const c=create();const normal=c.look(0,0,30,20,1,false),aim=c.look(0,0,30,20,1,true);assert.ok(normal.yaw<aim.yaw&&aim.yaw<0);assert.equal(c.look(0,1.4,0,-1000).pitch,1.45);assert.equal(c.look(0,-1.4,0,1000).pitch,-1.45);assert.deepEqual(c.look(1,2,NaN,4),{yaw:1,pitch:2});});
+test('Render mobile limita pixels sem reduzir a configuração do PC',()=>{const pc=create('pc'),mobile=create('touch');assert.equal(pc.renderRatio(2000,1000,2,3),2);const ratio=mobile.renderRatio(2000,1000,2,3);assert.ok(2000*1000*ratio*ratio<=900001);assert.equal(mobile.renderRatio(800,400,.85,3),.85);});
+class Element{
+ constructor(id){this.id=id;this.listeners={};this.attrs={};this.style={};this.dataset={};this.hidden=false;this.value='auto';this.textContent='';}
+ addEventListener(type,fn){(this.listeners[type]??=[]).push(fn);}
+ emit(type,props={}){const e={pointerId:1,pointerType:'touch',clientX:0,clientY:0,preventDefault(){},...props};for(const fn of this.listeners[type]||[])fn(e);}
+ setAttribute(name,value){this.attrs[name]=value;}getAttribute(name){return this.attrs[name];}
+ setPointerCapture(id){this.captured=id;}getBoundingClientRect(){return {left:0,top:0,width:132,height:132};}
+}
+function ui(){
+ const ids=['controlMode','touchControls','touchStick','touchKnob','touchMore','c','touchFire','touchAim','touchSprint','touchCrouch','touchSwap','touchMoreButton','touchPause','touchFullscreen','touchDev','touchReload','touchHeal','touchArmor','touchGrenade','touchInteract','touchOrientation','controlHint'];
+ const nodes=Object.fromEntries(ids.map(id=>[id,new Element(id)]));const keys=new Element('jump');keys.dataset.key='Space';const events={},devents={};let tick;const held={},shots=[],looks=[],pressed=[];
+ nodes.touchControls.querySelectorAll=selector=>selector==='[data-key]'?[keys]:[nodes.touchFire,nodes.touchAim,nodes.touchSprint,nodes.touchCrouch];
+ const C=create('touch'),state={screen:'playing',devOpen:false,ads:false,nearest:{},nearZip:null},A={state,player:{alive:true,weapon:{},medkits:2,plates:1,grenades:2},applyQuality(){},input:{release(){held.ShiftLeft=held.KeyC=false;shots.push(false);},fire(on){shots.push(on);},look(dx,dy){looks.push([dx,dy]);},hold(key,on){held[key]=on;},aim(on){state.ads=on;},swap(){pressed.push('swap');}},pause(){state.screen='pause';},toast(){}};
+ const document={getElementById:id=>nodes[id],documentElement:{dataset:{}},pointerLockElement:null,addEventListener:(type,fn)=>devents[type]=fn};
+ vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../game/mobile.js'),'utf8'),{Aurora:{api:A},AuroraControls:C,document,localStorage:{setItem(){}},innerWidth:844,innerHeight:390,dispatchEvent:e=>pressed.push(e.code),KeyboardEvent:class{constructor(type,opts){this.type=type;Object.assign(this,opts);}},addEventListener:(type,fn)=>events[type]=fn,setInterval:fn=>tick=fn});tick();shots.length=0;
+ return {nodes,C,A,held,shots,looks,pressed,tick,events,devents,jump:keys};
+}
+test('Multitoque mantém movimento e mira independentes e solta o analógico',()=>{const u=ui();u.nodes.touchStick.emit('pointerdown',{pointerId:7,clientX:66,clientY:0});u.nodes.c.emit('pointerdown',{pointerId:8,clientX:600,clientY:100});u.nodes.c.emit('pointermove',{pointerId:8,clientX:620,clientY:110});assert.ok(u.C.move.y>.9);assert.deepEqual(u.looks,[[20,10]]);u.nodes.touchStick.emit('pointercancel',{pointerId:7});assert.equal(u.C.move.y,0);});
+test('Botão de tiro permite arrastar a mira e não fica preso fora da área',()=>{const u=ui();u.nodes.touchFire.emit('pointerdown',{pointerId:9,clientX:700,clientY:250});u.nodes.touchFire.emit('pointermove',{pointerId:9,clientX:680,clientY:240});u.nodes.touchFire.emit('lostpointercapture',{pointerId:9});assert.deepEqual(u.shots,[true,false]);assert.deepEqual(u.looks,[[-20,-10]]);});
+test('Pausa e retorno do inventário limpam entrada, sem trocar o modo',()=>{const u=ui();u.nodes.touchStick.emit('pointerdown',{clientX:66,clientY:0});u.nodes.touchFire.emit('pointerdown');u.nodes.touchSprint.emit('click');u.A.state.screen='inventory';u.tick();assert.equal(u.C.move.y,0);assert.equal(u.held.ShiftLeft,false);assert.equal(u.shots.at(-1),false);assert.equal(u.nodes.touchControls.hidden,true);u.A.state.screen='playing';u.tick();assert.equal(u.nodes.touchControls.hidden,false);});
+test('Troca de aba libera disparo e os modificadores de movimento',()=>{const u=ui();u.nodes.touchFire.emit('pointerdown');u.nodes.touchCrouch.emit('click');u.events.blur();assert.equal(u.shots.at(-1),false);assert.equal(u.held.KeyC,false);});
+test('Pulo e troca de arma acionam o caminho existente de ações',()=>{const u=ui();u.jump.emit('click');u.nodes.touchSwap.emit('click');assert.deepEqual(u.pressed,['Space','Space','swap']);});
+test('Jogador morto e painel dev não aceitam novas entradas de toque',()=>{const u=ui();u.A.player.alive=false;u.nodes.touchFire.emit('pointerdown');u.tick();assert.equal(u.nodes.touchControls.hidden,true);assert.ok(!u.shots.includes(true));u.A.player.alive=true;u.A.state.devOpen=true;u.nodes.touchStick.emit('pointerdown',{clientX:100});assert.equal(u.C.move.x,0);});

@@ -44,4 +44,4 @@ Compacte a pasta `Windows/` em um ZIP e anexe-o em **Releases → Draft a new re
 
 - O modo desenvolvedor (F1) também funciona na versão online. Ele só altera a sua partida, no seu navegador.
 - Se alguém vir tela preta, peça para atualizar o navegador e ativar a aceleração por hardware, ou escolher qualidade **Baixa**.
-- O jogo precisa de teclado e mouse; não há controles de toque para celular.
+- O jogo possui controles de toque para celular e teclado/mouse para PC. Se necessário, escolha o modo no menu CONTROLES.

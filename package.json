@@ -6,10 +6,11 @@
   "description": "Battle Royale 3D offline para Windows, com Three.js e Electron",
   "main": "main.cjs",
   "scripts": {
-    "test": "node tests/core.test.cjs",
+    "test": "node --test tests/*.test.cjs",
     "start": "electron .",
     "serve": "node tools/server.cjs",
-    "build:offline": "node tools/build-offline.cjs"
+    "build:offline": "node tools/build-offline.cjs",
+    "test:graphics": "electron tests/mobile-electron.cjs"
   },
   "devDependencies": {
     "electron": "44.7.0"

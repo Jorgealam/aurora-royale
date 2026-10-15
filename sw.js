@@ -1,5 +1,5 @@
 'use strict';
-const VERSION="0f5d4336aace34c6ef78",FILES=["game/core.js","game/dev.js","game/fx.js","game/game.js","game/index.html","game/island.js","game/offline.js","game/style.css","game/vendor/THREE-LICENSE.txt","game/vendor/three.min.js","game/world.js","index.html"];
+const VERSION="694517a31d7ca6b4af83",FILES=["game/core.js","game/dev.js","game/fx.js","game/game.js","game/index.html","game/input.js","game/island.js","game/mobile.css","game/mobile.js","game/offline.js","game/style.css","game/vendor/THREE-LICENSE.txt","game/vendor/three.min.js","game/world.js","index.html"];
 const BASE=new URL('./',self.location.href),PREFIX='aurora-royale:'+BASE.pathname+':',CACHE=PREFIX+VERSION;
 const assets=new Set(FILES.map(file=>new URL(file,BASE).href));
 self.addEventListener('install',event=>event.waitUntil((async()=>{

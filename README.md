@@ -4,7 +4,7 @@ Battle royale 3D em primeira pessoa para navegador e Windows. Contém 12 armas, 
 
 ## Jogar
 
-Jogue em https://jorgealam.github.io/aurora-royale/ — repositório: https://github.com/Jorgealam/aurora-royale. Use teclado e mouse; esta versão não possui controles de toque.
+Jogue em https://jorgealam.github.io/aurora-royale/ — repositório: https://github.com/Jorgealam/aurora-royale. Compatível com PC (teclado e mouse) e celular (toque). O modo é detectado automaticamente e pode ser alterado em CONTROLES. No celular, prefira a horizontal e qualidade Baixa; recomenda-se começar pelo Campo de treino.
 
 ## Offline
 
@@ -14,10 +14,12 @@ Atualizações são baixadas quando há conexão. Ao aparecer o aviso de atualiz
 
 ## Executar e atualizar
 
-- Testes: `node --test tests/core.test.cjs`.
+- Testes: `npm test` (lógica, toque e cache). Integração gráfica: `npm run test:graphics` com Electron instalado.
 - Servidor de desenvolvimento original: `node tools/server.cjs` (porta 8080; serve apenas game/ e não testa o cache da raiz).
 - Após alterar arquivos, execute `node tools/build-offline.cjs` para atualizar o cache local.
 - Envie mudanças para `main`. A automação do GitHub executa os testes, gera a versão do cache e publica apenas index.html, sw.js e game/.
 - Para testar offline localmente, sirva a raiz do projeto por HTTP em localhost, nunca por file://.
 
 Windows/, node_modules/, .claude/, evidências locais e arquivos temporários não são publicados. As licenças de terceiros estão em TERCEIROS.md e game/vendor/THREE-LICENSE.txt. A base histórica em original/ não é carregada pelo jogo.
+
+Detalhes dos controles e da validação: [MOBILE.md](MOBILE.md).
